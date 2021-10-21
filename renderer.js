@@ -1,8 +1,7 @@
 const request = require("request-promise-native");
-const fs = require("fs");
-const certFolder = `${process.env.APPDATA}\\Daedalus Mainnet\\tls\\client\\`;
 
 const logEl = document.getElementById("logging");
+const ipEl = document.getElementById("ip");
 const portEl = document.getElementById("port");
 const walletEl = document.getElementById("walletID");
 const lovelaceEl = document.getElementById("lovelace");
@@ -10,7 +9,7 @@ const transactionEl = document.getElementById("transaction");
 const passphraseEl = document.getElementById("passphrase");
 const addressEl = document.getElementById("address");
 
-let port;
+let ip, port;
 
 const log = (text) => {
     logEl.value += `${text}\n`;
@@ -20,10 +19,7 @@ const getWalletData = async () => {
     try {
         let walletData = await request({
             method: "GET",
-            uri: `https://localhost:${port}/v2/wallets`,
-            cert: fs.readFileSync(certFolder + "client.pem"),
-            key: fs.readFileSync(certFolder + "client.key"),
-            ca: fs.readFileSync(certFolder + "ca.crt"),
+            uri: `http://${ip}:${port}/v2/wallets`,
             strictSSL: false,
             json: true
         });
@@ -53,11 +49,8 @@ const sendTransaction = async (passphrase, lovelaceAmount, transactionAmount, to
             try {
                 let transaction = await request({
                     method: "POST",
-                    uri: `https://localhost:${port}/v2/wallets/${chosenWalletID}/transactions`,
+                    uri: `http://${ip}:${port}/v2/wallets/${chosenWalletID}/transactions`,
                     json: true,
-                    cert: fs.readFileSync(certFolder + "client.pem"),
-                    key: fs.readFileSync(certFolder + "client.key"),
-                    ca: fs.readFileSync(certFolder + "ca.crt"),
                     strictSSL: false,
                     body: {
                         "passphrase": passphrase,
@@ -94,6 +87,10 @@ addressEl.addEventListener("keydown", (e) => {
 
 portEl.addEventListener("change", () => {
     port = portEl.value.trim();
+});
+
+ipEl.addEventListener("change", () => {
+    ip = ipEl.value.trim();
 });
 
 document.getElementById("send").addEventListener("click", () => {
