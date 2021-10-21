@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <title>GUI</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div id="container">
+        Port: <input id="port" type="text" /><button id="connect">Connect</button><br>
+        Selected Wallet ID: <input id="walletID" type="text" /><br>
+        Lovelace (1 ADA = 1,000,000): <input id="lovelace" type="number" /><span id="conversion"></span><br>
+        Transaction Amount: <input id="transaction" type="number" /><br>
+        Passphrase: <input id="passphrase" type="text" /><br>
+        Address: <input id="address" type="text" /><button id="send">SEND</button>
+    </div>
+    <textarea id="logging"></textarea>
+    <script src="renderer.js"></script>
+  </body>
+</html>
