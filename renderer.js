@@ -1,4 +1,5 @@
 const { dialog } = require("@electron/remote");
+const { version } = require("./package.json");
 const reqBase = require("request-promise-native");
 const fs = require("fs");
 const certFolder = `${process.env.APPDATA}\\Daedalus Mainnet\\tls\\client\\`;
@@ -31,6 +32,8 @@ const log = (text) => {
 const clearLog = () => {
     logEl.value = "";
 }
+
+log(`Running version ${version}`);
 
 if (dialog.showMessageBoxSync(modeDialog) === 1) {
     httpScheme = "https";
