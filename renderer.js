@@ -86,31 +86,32 @@ const sendTransaction = async (passphrase, lovelaceAmount, transactionAmount, to
     if (dialog.showMessageBoxSync(confirmationDialog) === 0) {
         log(`Authorized ${transactionAmount} transaction(s) for ${lovelaceAmount} Lovelace (~${(lovelaceAmount/1000000).toFixed(2)} ADA) to ${toAddress}.`);
         for (let j = 0; j < transactionAmount; j++) {
-            try {
-                let transaction = await request({
-                    method: "POST",
-                    uri: `${httpScheme}://${ip}:${port}/v2/wallets/${chosenWalletID}/transactions`,
-                    json: true,
-                    strictSSL: false,
-                    body: {
-                        "passphrase": passphrase,
-                        "payments": [
-                            {
-                                "address": toAddress,
-                                "amount": {
-                                    "quantity": lovelaceAmount,
-                                    "unit": "lovelace"
-                                }
+            request({
+                method: "POST",
+                uri: `${httpScheme}://${ip}:${port}/v2/wallets/${chosenWalletID}/transactions`,
+                json: true,
+                strictSSL: false,
+                body: {
+                    "passphrase": passphrase,
+                    "payments": [
+                        {
+                        "address": toAddress,
+                            "amount": {
+                                "quantity": lovelaceAmount,
+                                "unit": "lovelace"
                             }
-                        ],
-                        "withdrawal": "self"
-                    }
-                });
+                        }
+                    ],
+                    "withdrawal": "self"
+                }
+            })
+            .then((r) => {
                 log(`Transaction ${j} sent!`);
-            } catch (tErr) {
+            })
+            .catch((tErr) => {
                 console.log(tErr);
                 log(`Error processing transaction ${j}`);
-            }
+            });
         }
     }
 }
