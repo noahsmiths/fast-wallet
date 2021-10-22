@@ -1,4 +1,6 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow } = require('electron');
+const electronRemote = require('@electron/remote/main');
+electronRemote.initialize();
 
 function createWindow () {
     const win = new BrowserWindow({
@@ -10,6 +12,7 @@ function createWindow () {
         }
     });
 
+    electronRemote.enable(win.webContents);
     win.loadFile('index.html');
 }
 

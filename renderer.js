@@ -1,6 +1,13 @@
+const { dialog } = require("@electron/remote");
 const reqBase = require("request-promise-native");
 const fs = require("fs");
 const certFolder = `${process.env.APPDATA}\\Daedalus Mainnet\\tls\\client\\`;
+
+const modeDialog = {
+    message: "Are you using Daedalus or Server mode?",
+    buttons: ["Server", "Daedalus"],
+    defaultId: 0
+}
 
 let request;
 
@@ -25,7 +32,7 @@ const clearLog = () => {
     logEl.value = "";
 }
 
-if (confirm("Are you using Daedalus?\n(Hit 'Cancel' for No)")) {
+if (dialog.showMessageBoxSync(modeDialog) === 1) {
     httpScheme = "https";
     request = reqBase.defaults({
         cert: fs.readFileSync(certFolder + "client.pem"),
@@ -69,7 +76,14 @@ const sendTransaction = async (passphrase, lovelaceAmount, transactionAmount, to
     console.log(transactionAmount);
     console.log(toAddress);
     console.log(chosenWalletID);
-    if (confirm(`You have entered ${transactionAmount} transaction(s) for ${lovelaceAmount} Lovelace (~${(lovelaceAmount/1000000).toFixed(2)} ADA) to ${toAddress}. Continue?`)) {
+
+    let confirmationDialog = {
+        message: `You have entered ${transactionAmount} transaction(s) for ${lovelaceAmount} Lovelace (~${(lovelaceAmount/1000000).toFixed(2)} ADA) to ${toAddress}. Continue?`,
+        buttons: ["Yes", "No"],
+        defaultId: 0
+    }
+
+    if (dialog.showMessageBoxSync(confirmationDialog) === 0) {
         log(`Authorized ${transactionAmount} transaction(s) for ${lovelaceAmount} Lovelace (~${(lovelaceAmount/1000000).toFixed(2)} ADA) to ${toAddress}.`);
         for (let j = 0; j < transactionAmount; j++) {
             try {
