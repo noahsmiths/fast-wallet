@@ -32,7 +32,8 @@ if (confirm("Are you using Daedalus?\n(Hit 'Cancel' for No)")) {
         key: fs.readFileSync(certFolder + "client.key"),
         ca: fs.readFileSync(certFolder + "ca.crt"),
     });
-    ipEl.value = "localhost"
+    ipEl.value = "localhost";
+    ip = "localhost";
     log("Daedalus mode selected.");
 } else {
     httpScheme = "http";
