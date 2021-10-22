@@ -1,8 +1,11 @@
-const request = require("request-promise-native");
+const reqBase = require("request-promise-native");
 const fs = require("fs");
 const certFolder = `${process.env.APPDATA}\\Daedalus Mainnet\\tls\\client\\`;
 
+let request;
+
 const logEl = document.getElementById("logging");
+const ipEl = document.getElementById("ip");
 const portEl = document.getElementById("port");
 const walletEl = document.getElementById("walletID");
 const lovelaceEl = document.getElementById("lovelace");
@@ -10,20 +13,38 @@ const transactionEl = document.getElementById("transaction");
 const passphraseEl = document.getElementById("passphrase");
 const addressEl = document.getElementById("address");
 
-let port;
+let ip, port;
+
+let httpScheme;
 
 const log = (text) => {
     logEl.value += `${text}\n`;
+}
+
+const clearLog = () => {
+    logEl.value = "";
+}
+
+if (confirm("Are you using Daedalus?\n(Hit 'Cancel' for No)")) {
+    httpScheme = "https";
+    request = reqBase.defaults({
+        cert: fs.readFileSync(certFolder + "client.pem"),
+        key: fs.readFileSync(certFolder + "client.key"),
+        ca: fs.readFileSync(certFolder + "ca.crt"),
+    });
+    ipEl.value = "localhost"
+    log("Daedalus mode selected.");
+} else {
+    httpScheme = "http";
+    request = reqBase;
+    log("Server mode selected.");
 }
 
 const getWalletData = async () => {
     try {
         let walletData = await request({
             method: "GET",
-            uri: `https://localhost:${port}/v2/wallets`,
-            cert: fs.readFileSync(certFolder + "client.pem"),
-            key: fs.readFileSync(certFolder + "client.key"),
-            ca: fs.readFileSync(certFolder + "ca.crt"),
+            uri: `${httpScheme}://${ip}:${port}/v2/wallets`,
             strictSSL: false,
             json: true
         });
@@ -53,11 +74,8 @@ const sendTransaction = async (passphrase, lovelaceAmount, transactionAmount, to
             try {
                 let transaction = await request({
                     method: "POST",
-                    uri: `https://localhost:${port}/v2/wallets/${chosenWalletID}/transactions`,
+                    uri: `${httpScheme}://${ip}:${port}/v2/wallets/${chosenWalletID}/transactions`,
                     json: true,
-                    cert: fs.readFileSync(certFolder + "client.pem"),
-                    key: fs.readFileSync(certFolder + "client.key"),
-                    ca: fs.readFileSync(certFolder + "ca.crt"),
                     strictSSL: false,
                     body: {
                         "passphrase": passphrase,
@@ -86,14 +104,20 @@ lovelaceEl.addEventListener("change", () => {
     document.getElementById("conversion").innerText = `${(lovelaceEl.value/1000000).toFixed(6)} ADA`;
 });
 
+portEl.addEventListener("change", () => {
+    port = portEl.value.trim();
+});
+
+ipEl.addEventListener("change", () => {
+    ip = ipEl.value.trim();
+});
+
+document.getElementById("clear").addEventListener("click", clearLog);
+
 addressEl.addEventListener("keydown", (e) => {
     if (e.keyCode === 13) {
         sendTransaction(passphraseEl.value.trim(), +lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), walletEl.value.trim());
     }
-});
-
-portEl.addEventListener("change", () => {
-    port = portEl.value.trim();
 });
 
 document.getElementById("send").addEventListener("click", () => {

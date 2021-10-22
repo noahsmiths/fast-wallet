@@ -10,6 +10,7 @@
   </head>
   <body>
     <div id="container">
+        IP: <input id="ip" type="text" /><br>
         Port: <input id="port" type="text" /><button id="connect">Connect</button><br>
         Selected Wallet ID: <input id="walletID" type="text" /><br>
         Lovelace (1 ADA = 1,000,000): <input id="lovelace" type="number" /><span id="conversion"></span><br>
@@ -17,7 +18,8 @@
         Passphrase: <input id="passphrase" type="text" /><br>
         Address: <input id="address" type="text" /><button id="send">SEND</button>
     </div>
-    <textarea id="logging"></textarea>
+    <textarea id="logging" readonly></textarea><br>
+    <button id="clear">Clear Log</button>
     <script src="renderer.js"></script>
   </body>
 </html>
