@@ -3,6 +3,6 @@
     height: 50vh;
 }
 
-#container > input {
+#container > input[type="text"] {
     width: 65%;
 }

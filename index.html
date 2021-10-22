@@ -10,16 +10,18 @@
   </head>
   <body>
     <div id="container">
-        IP: <input id="ip" type="text" /><br>
-        Port: <input id="port" type="text" /><button id="connect">Connect</button><br>
-        Selected Wallet ID: <input id="walletID" type="text" /><br>
-        Lovelace (1 ADA = 1,000,000): <input id="lovelace" type="number" /><span id="conversion"></span><br>
-        Transaction Amount: <input id="transaction" type="number" /><br>
-        Passphrase: <input id="passphrase" type="text" /><br>
-        Address: <input id="address" type="text" /><button id="send">SEND</button>
+      IP: <input id="ip" type="text" /><br>
+      Port: <input id="port" type="text" /><button id="connect">Connect</button><br>
+      Selected Wallet ID: <input id="walletID" type="text" /><br>
+      Lovelace (1 ADA = 1,000,000): <input id="lovelace" type="number" /><span id="conversion"></span><br>
+      Transaction Amount: <input id="transaction" type="number" /><br>
+      Passphrase: <input id="passphrase" type="text" /><br>
+      Address: <input id="address" type="text" /><button id="send">SEND</button>
+      <textarea id="logging" readonly></textarea><br>
+      <button id="clear">Clear Log</button><br>
+      Send on address paste: <input id="send-on-paste" type="checkbox" /><br>
+      Confirm transaction before sending: <input id="confirm-tx" type="checkbox" checked/><br>
     </div>
-    <textarea id="logging" readonly></textarea><br>
-    <button id="clear">Clear Log</button>
     <script src="renderer.js"></script>
   </body>
 </html>

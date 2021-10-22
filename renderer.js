@@ -20,9 +20,10 @@ const lovelaceEl = document.getElementById("lovelace");
 const transactionEl = document.getElementById("transaction");
 const passphraseEl = document.getElementById("passphrase");
 const addressEl = document.getElementById("address");
+const confirmEl = document.getElementById("confirm-tx");
 
 let ip, port;
-
+let sendOnPaste = false;
 let httpScheme;
 
 const log = (text) => {
@@ -73,12 +74,13 @@ const getWalletData = async () => {
     }
 }
 
-const sendTransaction = async (passphrase, lovelaceAmount, transactionAmount, toAddress, chosenWalletID) => {
+const sendTransaction = async (passphrase, lovelaceAmount, transactionAmount, toAddress, chosenWalletID, confirmTx) => {
     console.log(passphrase);
     console.log(lovelaceAmount);
     console.log(transactionAmount);
     console.log(toAddress);
     console.log(chosenWalletID);
+    console.log(confirmTx);
 
     let confirmationDialog = {
         message: `You have entered ${transactionAmount} transaction(s) for ${lovelaceAmount} Lovelace (~${(lovelaceAmount/1000000).toFixed(2)} ADA) to ${toAddress}. Continue?`,
@@ -86,7 +88,39 @@ const sendTransaction = async (passphrase, lovelaceAmount, transactionAmount, to
         defaultId: 0
     }
 
-    if (dialog.showMessageBoxSync(confirmationDialog) === 0) {
+    if (confirmTx) {
+        if (dialog.showMessageBoxSync(confirmationDialog) === 0) {
+            log(`Authorized ${transactionAmount} transaction(s) for ${lovelaceAmount} Lovelace (~${(lovelaceAmount/1000000).toFixed(2)} ADA) to ${toAddress}.`);
+            for (let j = 0; j < transactionAmount; j++) {
+                request({
+                    method: "POST",
+                    uri: `${httpScheme}://${ip}:${port}/v2/wallets/${chosenWalletID}/transactions`,
+                    json: true,
+                    strictSSL: false,
+                    body: {
+                        "passphrase": passphrase,
+                        "payments": [
+                            {
+                            "address": toAddress,
+                                "amount": {
+                                    "quantity": lovelaceAmount,
+                                    "unit": "lovelace"
+                                }
+                            }
+                        ],
+                        "withdrawal": "self"
+                    }
+                })
+                .then((r) => {
+                    log(`Transaction ${j} sent!`);
+                })
+                .catch((tErr) => {
+                    console.log(tErr);
+                    log(`Error processing transaction ${j}`);
+                });
+            }
+        }
+    } else {
         log(`Authorized ${transactionAmount} transaction(s) for ${lovelaceAmount} Lovelace (~${(lovelaceAmount/1000000).toFixed(2)} ADA) to ${toAddress}.`);
         for (let j = 0; j < transactionAmount; j++) {
             request({
@@ -109,11 +143,11 @@ const sendTransaction = async (passphrase, lovelaceAmount, transactionAmount, to
                 }
             })
             .then((r) => {
-                log(`Transaction ${j} sent!`);
+                log(`Transaction ${j + 1} sent!`);
             })
             .catch((tErr) => {
                 console.log(tErr);
-                log(`Error processing transaction ${j}`);
+                log(`Error processing transaction ${j + 1}`);
             });
         }
     }
@@ -135,14 +169,27 @@ document.getElementById("clear").addEventListener("click", clearLog);
 
 addressEl.addEventListener("keydown", (e) => {
     if (e.keyCode === 13) {
-        sendTransaction(passphraseEl.value.trim(), +lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), walletEl.value.trim());
+        sendTransaction(passphraseEl.value.trim(), +lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), walletEl.value.trim(), confirmEl.checked);
     }
 });
 
 document.getElementById("send").addEventListener("click", () => {
-    sendTransaction(passphraseEl.value.trim(), +lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), walletEl.value.trim());
+    sendTransaction(passphraseEl.value.trim(), +lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), walletEl.value.trim(), confirmEl.checked);
 });
 
 document.getElementById("connect").addEventListener("click", () => {
     getWalletData();
+});
+
+document.getElementById("send-on-paste").addEventListener("change", (e) => {
+    sendOnPaste = e.target.checked;
+});
+
+addressEl.addEventListener("paste", (e) => {
+    if (sendOnPaste) {
+        addressEl.value = e.clipboardData.getData("text");
+        //console.log();
+        sendTransaction(passphraseEl.value.trim(), +lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), walletEl.value.trim(), confirmEl.checked);
+        e.preventDefault();
+    }
 });
