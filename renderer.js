@@ -117,11 +117,11 @@ const sendTransaction = async (passphrase, lovelaceAmount, transactionAmount, to
                     }
                 })
                 .then((r) => {
-                    log(`Transaction ${j} sent!`);
+                    log(`Transaction ${j + 1} sent!`);
                 })
                 .catch((tErr) => {
                     console.log(tErr);
-                    log(`Error processing transaction ${j}`);
+                    log(`Error processing transaction ${j + 1}`);
                 });
             }
         }
