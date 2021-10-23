@@ -1,4 +1,4 @@
-const { dialog } = require("@electron/remote");
+const { app, dialog } = require("@electron/remote");
 const { version } = require("./package.json");
 const reqBase = require("request-promise-native");
 const fs = require("fs");
@@ -49,11 +49,19 @@ if (dialog.showMessageBoxSync(modeDialog) === 1) {
     log("Daedalus mode selected.");
 } else {
     httpScheme = "https";
-    request = reqBase.defaults({
-        cert: fs.readFileSync(path.resolve("certs/client.pem")),
-        key: fs.readFileSync(path.resolve("certs/client.pem")),
-        ca: fs.readFileSync(path.resolve("certs/client.pem")),
-    });
+    if (app.isPackaged) {
+        request = reqBase.defaults({
+            cert: fs.readFileSync(path.resolve(process.resourcesPath + "/certs/client.pem")),
+            key: fs.readFileSync(path.resolve(process.resourcesPath + "/certs/client.key")),
+            ca: fs.readFileSync(path.resolve(process.resourcesPath + "/certs/ca.crt")),
+        });
+    } else {
+        request = reqBase.defaults({
+            cert: fs.readFileSync(path.resolve("certs/client.pem")),
+            key: fs.readFileSync(path.resolve("certs/client.key")),
+            ca: fs.readFileSync(path.resolve("certs/ca.crt")),
+        });
+    }
     log("Server mode selected.");
 }
 

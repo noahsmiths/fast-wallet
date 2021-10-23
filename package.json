@@ -16,7 +16,13 @@
     "appId": "gui.wallet",
     "mac": {
       "category": "gui.wallet.crypto.crypto"
-    }
+    },
+    "extraResources": [
+      {
+        "from": "certs",
+        "to": "certs"
+      }
+    ]
   },
   "author": "",
   "license": "ISC",
