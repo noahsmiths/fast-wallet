@@ -22,6 +22,7 @@ const transactionEl = document.getElementById("transaction");
 const passphraseEl = document.getElementById("passphrase");
 const addressEl = document.getElementById("address");
 const confirmEl = document.getElementById("confirm-tx");
+const highlightOnFocus = document.getElementById("highlight-on-focus");
 
 let ip, port;
 let sendOnPaste = false;
@@ -196,6 +197,12 @@ document.getElementById("connect").addEventListener("click", () => {
 
 document.getElementById("send-on-paste").addEventListener("change", (e) => {
     sendOnPaste = e.target.checked;
+});
+
+window.addEventListener("focus", (e) => {
+    if (highlightOnFocus.checked) {
+        addressEl.focus();
+    }
 });
 
 addressEl.addEventListener("paste", (e) => {
