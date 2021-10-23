@@ -2,7 +2,8 @@ const { dialog } = require("@electron/remote");
 const { version } = require("./package.json");
 const reqBase = require("request-promise-native");
 const fs = require("fs");
-const certFolder = `${process.env.APPDATA}\\Daedalus Mainnet\\tls\\client\\`;
+const path = require("path");
+const certFolder = `${process.env.APPDATA}/Daedalus Mainnet/tls/client/`;
 
 const modeDialog = {
     message: "Are you using Daedalus or Server mode?",
@@ -39,9 +40,9 @@ log(`Running version ${version}`);
 if (dialog.showMessageBoxSync(modeDialog) === 1) {
     httpScheme = "https";
     request = reqBase.defaults({
-        cert: fs.readFileSync(certFolder + "client.pem"),
-        key: fs.readFileSync(certFolder + "client.key"),
-        ca: fs.readFileSync(certFolder + "ca.crt"),
+        cert: fs.readFileSync(path.resolve(certFolder + "client.pem")),
+        key: fs.readFileSync(path.resolve(certFolder + "client.key")),
+        ca: fs.readFileSync(path.resolve(certFolder + "ca.crt")),
     });
     ipEl.value = "localhost";
     ip = "localhost";
@@ -49,9 +50,9 @@ if (dialog.showMessageBoxSync(modeDialog) === 1) {
 } else {
     httpScheme = "https";
     request = reqBase.defaults({
-        cert: fs.readFileSync("cert_stuff/client/client.pem"),
-        key: fs.readFileSync("cert_stuff/client/client.pem"),
-        ca: fs.readFileSync("cert_stuff/client/client.pem"),
+        cert: fs.readFileSync(path.resolve("certs/client.pem")),
+        key: fs.readFileSync(path.resolve("certs/client.pem")),
+        ca: fs.readFileSync(path.resolve("certs/client.pem")),
     });
     log("Server mode selected.");
 }
