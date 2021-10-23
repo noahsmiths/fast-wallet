@@ -47,8 +47,12 @@ if (dialog.showMessageBoxSync(modeDialog) === 1) {
     ip = "localhost";
     log("Daedalus mode selected.");
 } else {
-    httpScheme = "http";
-    request = reqBase;
+    httpScheme = "https";
+    request = reqBase.defaults({
+        cert: fs.readFileSync("cert_stuff/client/client.pem"),
+        key: fs.readFileSync("cert_stuff/client/client.pem"),
+        ca: fs.readFileSync("cert_stuff/client/client.pem"),
+    });
     log("Server mode selected.");
 }
 
