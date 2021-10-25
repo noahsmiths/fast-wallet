@@ -3,7 +3,7 @@ const { version } = require("./package.json");
 const reqBase = require("request-promise-native");
 const fs = require("fs");
 const path = require("path");
-const certFolder = `${process.env.APPDATA}/Daedalus Mainnet/tls/client/`;
+const certFolder = path.normalize(`${app.getPath("userData")}/../Daedalus Mainnet/tls/client/`);
 
 const modeDialog = {
     message: "Are you using Daedalus or Server mode?",
