@@ -23,6 +23,8 @@ const passphraseEl = document.getElementById("passphrase");
 const addressEl = document.getElementById("address");
 const confirmEl = document.getElementById("confirm-tx");
 const highlightOnFocus = document.getElementById("highlight-on-focus");
+const initialDelay = document.getElementById("initial-delay");
+const betweenTransactionDelay = document.getElementById("between-tx-delay");
 
 let ip, port;
 let sendOnPaste = false;
@@ -34,6 +36,12 @@ const log = (text) => {
 
 const clearLog = () => {
     logEl.value = "";
+}
+
+const wait = (time) => {
+    return new Promise((res) => {
+        setTimeout(res, time);
+    });
 }
 
 log(`Running version ${version}`);
@@ -104,6 +112,10 @@ const sendTransaction = async (passphrase, lovelaceAmount, transactionAmount, to
 
     if (confirmTx) {
         if (dialog.showMessageBoxSync(confirmationDialog) === 0) {
+            if (initialDelay.value) {
+                log(`Delaying ${initialDelay.value}ms...`);
+                await wait(+initialDelay.value);
+            }
             log(`Authorized ${transactionAmount} transaction(s) for ${lovelaceAmount} Lovelace (~${(lovelaceAmount/1000000).toFixed(2)} ADA) to ${toAddress}.`);
             for (let j = 0; j < transactionAmount; j++) {
                 request({
@@ -132,9 +144,17 @@ const sendTransaction = async (passphrase, lovelaceAmount, transactionAmount, to
                     console.log(tErr);
                     log(`Error processing transaction ${j + 1}`);
                 });
+                if (betweenTransactionDelay.value) {
+                    log(`Delaying ${betweenTransactionDelay.value}ms...`);
+                    await wait(+betweenTransactionDelay.value);
+                }
             }
         }
     } else {
+        if (initialDelay.value) {
+            log(`Delaying ${initialDelay.value}ms...`);
+            await wait(+initialDelay.value);
+        }
         log(`Authorized ${transactionAmount} transaction(s) for ${lovelaceAmount} Lovelace (~${(lovelaceAmount/1000000).toFixed(2)} ADA) to ${toAddress}.`);
         for (let j = 0; j < transactionAmount; j++) {
             request({
@@ -163,6 +183,10 @@ const sendTransaction = async (passphrase, lovelaceAmount, transactionAmount, to
                 console.log(tErr);
                 log(`Error processing transaction ${j + 1}`);
             });
+            if (betweenTransactionDelay.value) {
+                log(`Delaying ${betweenTransactionDelay.value}ms...`);
+                await wait(+betweenTransactionDelay.value);
+            }
         }
     }
 }
