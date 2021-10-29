@@ -83,29 +83,38 @@ const getWalletData = async () => {
             json: true
         });
     
-        let wallets = "";
+        //let wallets = "";
+
+        walletEl.innerHTML = "";
+        walletEl.size = walletData.length;
             
         for (let i = 0; i < walletData.length; i++) {
             let wallet = walletData[i];
-            wallets += `${wallet.id} - ${wallet.name} (${(wallet.balance.available.quantity/1000000).toFixed(6)}) ADA\n`;
+            let option = document.createElement("option");
+            option.value = wallet.id;
+            option.innerHTML = `${wallet.id} - ${wallet.name} (${(wallet.balance.available.quantity/1000000).toFixed(6)}) ADA`;
+            walletEl.appendChild(option);
+
+            //wallets += `${wallet.id} - ${wallet.name} (${(wallet.balance.available.quantity/1000000).toFixed(6)}) ADA\n`;
         }
     
-        log(wallets.substring(0, wallets.length - 1));
+        //log(wallets.substring(0, wallets.length - 1));
+        log("Loaded wallets.");
     } catch (e) {
         log(e);
     }
 }
 
-const sendTransaction = async (passphrase, lovelaceAmount, transactionAmount, toAddress, chosenWalletID, confirmTx) => {
-    console.log(passphrase);
+const sendTransaction = async (passphrases, lovelaceAmount, transactionAmount, toAddress, chosenWallets, confirmTx) => {
+    console.log(passphrases);
     console.log(lovelaceAmount);
     console.log(transactionAmount);
     console.log(toAddress);
-    console.log(chosenWalletID);
+    console.log(chosenWallets);
     console.log(confirmTx);
 
     let confirmationDialog = {
-        message: `You have entered ${transactionAmount} transaction(s) for ${lovelaceAmount} Lovelace (~${(lovelaceAmount/1000000).toFixed(2)} ADA) to ${toAddress}. Continue?`,
+        message: `You have entered ${transactionAmount} transaction(s) for ${lovelaceAmount} Lovelace (${(lovelaceAmount/1000000).toFixed(6)} ADA) to ${toAddress} on ${chosenWallets.length} wallet(s). Continue?`,
         buttons: ["Yes", "No"],
         defaultId: 0
     }
@@ -116,7 +125,54 @@ const sendTransaction = async (passphrase, lovelaceAmount, transactionAmount, to
                 log(`Delaying ${initialDelay.value}ms...`);
                 await wait(+initialDelay.value);
             }
-            log(`Authorized ${transactionAmount} transaction(s) for ${lovelaceAmount} Lovelace (~${(lovelaceAmount/1000000).toFixed(2)} ADA) to ${toAddress}.`);
+            log(`Authorized ${transactionAmount} transaction(s) for ${lovelaceAmount} Lovelace (${(lovelaceAmount/1000000).toFixed(6)} ADA) to ${toAddress} on ${chosenWallets.length} wallet(s).`);
+            for (let c = 0; c < chosenWallets.length; c++) {
+                let chosenWalletID = chosenWallets[c];
+                let passphrase = passphrases[c];
+                console.log(`${chosenWalletID} with passphrase ${passphrase}`);
+                for (let j = 0; j < transactionAmount; j++) {
+                    request({
+                        method: "POST",
+                        uri: `${httpScheme}://${ip}:${port}/v2/wallets/${chosenWalletID}/transactions`,
+                        json: true,
+                        strictSSL: false,
+                        body: {
+                            "passphrase": passphrase,
+                            "payments": [
+                                {
+                                "address": toAddress,
+                                    "amount": {
+                                        "quantity": lovelaceAmount,
+                                        "unit": "lovelace"
+                                    }
+                                }
+                            ],
+                            "withdrawal": "self"
+                        }
+                    })
+                    .then((r) => {
+                        log(`Transaction ${j + 1} sent!`);
+                    })
+                    .catch((tErr) => {
+                        console.log(tErr);
+                        log(`Error processing transaction ${j + 1}`);
+                    });
+                    if (betweenTransactionDelay.value) {
+                        log(`Delaying ${betweenTransactionDelay.value}ms...`);
+                        await wait(+betweenTransactionDelay.value);
+                    }
+                }
+            }
+        }
+    } else {
+        if (initialDelay.value) {
+            log(`Delaying ${initialDelay.value}ms...`);
+            await wait(+initialDelay.value);
+        }
+        log(`Authorized ${transactionAmount} transaction(s) for ${lovelaceAmount} Lovelace (${(lovelaceAmount/1000000).toFixed(6)} ADA) to ${toAddress} on ${chosenWallets.length} wallet(s).`);
+        for (let c = 0; c < chosenWallets.length; c++) {
+            let chosenWalletID = chosenWallets[c];
+            let passphrase = passphrases[c];
             for (let j = 0; j < transactionAmount; j++) {
                 request({
                     method: "POST",
@@ -150,44 +206,6 @@ const sendTransaction = async (passphrase, lovelaceAmount, transactionAmount, to
                 }
             }
         }
-    } else {
-        if (initialDelay.value) {
-            log(`Delaying ${initialDelay.value}ms...`);
-            await wait(+initialDelay.value);
-        }
-        log(`Authorized ${transactionAmount} transaction(s) for ${lovelaceAmount} Lovelace (~${(lovelaceAmount/1000000).toFixed(2)} ADA) to ${toAddress}.`);
-        for (let j = 0; j < transactionAmount; j++) {
-            request({
-                method: "POST",
-                uri: `${httpScheme}://${ip}:${port}/v2/wallets/${chosenWalletID}/transactions`,
-                json: true,
-                strictSSL: false,
-                body: {
-                    "passphrase": passphrase,
-                    "payments": [
-                        {
-                        "address": toAddress,
-                            "amount": {
-                                "quantity": lovelaceAmount,
-                                "unit": "lovelace"
-                            }
-                        }
-                    ],
-                    "withdrawal": "self"
-                }
-            })
-            .then((r) => {
-                log(`Transaction ${j + 1} sent!`);
-            })
-            .catch((tErr) => {
-                console.log(tErr);
-                log(`Error processing transaction ${j + 1}`);
-            });
-            if (betweenTransactionDelay.value) {
-                log(`Delaying ${betweenTransactionDelay.value}ms...`);
-                await wait(+betweenTransactionDelay.value);
-            }
-        }
     }
 }
 
@@ -207,12 +225,12 @@ document.getElementById("clear").addEventListener("click", clearLog);
 
 addressEl.addEventListener("keydown", (e) => {
     if (e.keyCode === 13) {
-        sendTransaction(passphraseEl.value.trim(), +lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), walletEl.value.trim(), confirmEl.checked);
+        sendTransaction(passphraseEl.value.trim().split(" "), +lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), [...walletEl.options].filter(opt => opt.selected).map(opt => opt.value), confirmEl.checked);
     }
 });
 
 document.getElementById("send").addEventListener("click", () => {
-    sendTransaction(passphraseEl.value.trim(), +lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), walletEl.value.trim(), confirmEl.checked);
+    sendTransaction(passphraseEl.value.trim().split(" "), +lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), [...walletEl.options].filter(opt => opt.selected).map(opt => opt.value), confirmEl.checked);
 });
 
 document.getElementById("connect").addEventListener("click", () => {
@@ -233,7 +251,7 @@ addressEl.addEventListener("paste", (e) => {
     if (sendOnPaste) {
         addressEl.value = e.clipboardData.getData("text");
         //console.log();
-        sendTransaction(passphraseEl.value.trim(), +lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), walletEl.value.trim(), confirmEl.checked);
+        sendTransaction(passphraseEl.value.trim().split(" "), +lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), [...walletEl.options].filter(opt => opt.selected).map(opt => opt.value), confirmEl.checked);
         e.preventDefault();
     }
 });
