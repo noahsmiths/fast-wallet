@@ -1,8 +1,8 @@
 #logging {
     width: 100%;
-    height: 50vh;
+    height: 33vh;
 }
 
-#container > input {
+#container > input[type="text"] {
     width: 65%;
 }

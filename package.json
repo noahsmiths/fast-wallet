@@ -1,6 +1,6 @@
 {
   "name": "fast-wallet",
-  "version": "1.0.2",
+  "version": "1.0.9",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -16,7 +16,13 @@
     "appId": "gui.wallet",
     "mac": {
       "category": "gui.wallet.crypto.crypto"
-    }
+    },
+    "extraResources": [
+      {
+        "from": "certs",
+        "to": "certs"
+      }
+    ]
   },
   "author": "",
   "license": "ISC",
