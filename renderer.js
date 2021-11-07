@@ -5,11 +5,13 @@ const fs = require("fs");
 const path = require("path");
 const certFolder = path.normalize(`${app.getPath("userData")}/../Daedalus Mainnet/tls/client/`);
 
+/*
 const modeDialog = {
     message: "Are you using Daedalus or Server mode?",
     buttons: ["Server", "Daedalus"],
     defaultId: 0
 }
+*/
 
 let request;
 
@@ -46,7 +48,7 @@ const wait = (time) => {
 
 log(`Running version ${version}`);
 
-if (dialog.showMessageBoxSync(modeDialog) === 1) {
+if (/* dialog.showMessageBoxSync(modeDialog) === 1*/false) {
     httpScheme = "https";
     request = reqBase.defaults({
         cert: fs.readFileSync(path.resolve(certFolder + "client.pem")),
