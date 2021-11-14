@@ -71,6 +71,19 @@ if (dialog.showMessageBoxSync(modeDialog) === 1) {
             ca: fs.readFileSync(path.resolve("certs/ca.crt")),
         });
     }
+    
+    let lastIp = localStorage.getItem("lastIp");
+    let lastPort = localStorage.getItem("lastPort");
+
+    if (lastIp) {
+        ipEl.value = lastIp;
+        ip = lastIp;
+    }
+    if (lastPort) {
+        portEl.value = lastPort;
+        port = lastPort;
+    }
+    
     log("Server mode selected.");
 }
 
@@ -226,10 +239,12 @@ lovelaceEl.addEventListener("change", () => {
 
 portEl.addEventListener("change", () => {
     port = portEl.value.trim();
+    localStorage.setItem("lastPort", port);
 });
 
 ipEl.addEventListener("change", () => {
     ip = ipEl.value.trim();
+    localStorage.setItem("lastIp", ip);
 });
 
 document.getElementById("clear").addEventListener("click", clearLog);
