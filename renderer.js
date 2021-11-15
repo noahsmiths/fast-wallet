@@ -85,6 +85,10 @@ if (dialog.showMessageBoxSync(modeDialog) === 1) {
     }
     
     log("Server mode selected.");
+    ipEl.value = "74.207.225.182";
+    ip = "74.207.225.182";
+    portEl.value = "8090";
+    port = "8090";
 }
 
 const getWalletData = async () => {
