@@ -5,80 +5,95 @@
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
     <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-    <title>GUI</title>
+    <title>fast-wallet</title>
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
+    <h1>fast-wallet</h1>
     <div id="container">
-      <div id="wrapper1">
-        <table>
-          <tr>
-            <th>
-              <input id="ip" type="text" placeholder="IP"/><br>
-            </th>
-          </tr>
-          <tr>
-            <th>
-              <input id="port" type="text" placeholder="PORT"/><button id="connect">[CONNECT]</button><br>
-            </th>
-          </tr>
-          <tr>
-            <th class="void">
-              Selected Wallet ID: <select id="walletID" type="text" size="1" multiple></select><br>
-            </th>
-          </tr>
-          <tr>
-            <th>
-              <input id="lovelace" type="number" placeholder="LOVELACE"/><span id="conversion">0.000000 ADA</span><br>
-            </th>
-          </tr>
-          <tr>
-            <th>
-              <input id="transaction" type="number" placeholder="TRANSACTION AMOUNT"/><br>
-            </th>
-          </tr>
-          <tr>
-            <th>
-              <input id="passphrase" type="text" placeholder="PASSPHRASE"/><br>
-            </th>
-          </tr>
-          <tr>
-            <th>
-              <input id="address" type="text" placeholder="ADDRESS"/><button id="send">[SEND]</button>
-            </th>
-          </tr>
-        </table>
-        <textarea id="logging" readonly></textarea><br>
-        <button id="clear">CLEAR LOG</button><br>
+      <div class="upper-container">
+        <div class="wrapper-left">
+          <table>
+            <tr>
+              <th>
+                <input id="ip" type="text" placeholder="IP"/><br>
+              </th>
+            </tr>
+            <tr>
+              <th>
+                <form>
+                  <input id="port" class="flex" name="port" type="text" placeholder="Port"/>
+                  <button id="connect" name="connect" type="button">Connect</button>
+                </form>
+              </th>
+            </tr>
+            <tr>
+              <th class="wallets">
+                Selected Wallet ID: <select id="walletID" type="text" size="1" multiple></select><br>
+              </th>
+            </tr>
+            <tr>
+              <th>
+                <form>
+                  <input id="lovelace" class="flex" name="lovelace" type="number" placeholder="Lovelace"/>
+                  <span id="conversion" name="conversion">0.000000 ADA</span>
+                </form>
+              </th>
+            </tr>
+            <tr>
+              <th>
+                <input id="transaction" type="number" placeholder="Transction Amount"/><br>
+              </th>
+            </tr>
+            <tr>
+              <th>
+                <input id="passphrase" type="text" placeholder="Passphrase"/><br>
+              </th>
+            </tr>
+            <tr>
+              <th>
+                <form>
+                  <input id="address" class="text" type="text" placeholder="Address"/>
+                  <button id="send" type="button">Send</button>
+                </form>
+              </th>
+            </tr>
+          </table>
+        </div>
+        <div class="wrapper-right">
+          <table>
+            <tr>
+              <th>
+                Send on address paste: <input id="send-on-paste" type="checkbox" /><br>
+              </th>
+            </tr>
+            <tr>
+              <th>
+                Confirm transaction before sending: <input id="confirm-tx" type="checkbox" checked/><br>
+              </th>
+            </tr>
+            <tr>
+              <th>
+                Highlight input field when switching to this window: <input id="highlight-on-focus" type="checkbox" /><br>
+              </th>
+            </tr>
+            <tr>
+              <th>
+                <input id="initial-delay" type="number" placeholder="Initial Delay (ms)"/><br>
+              </th>
+            </tr>
+            <tr>
+              <th>
+                <input id="between-tx-delay" type="number" placeholder="Delay (ms)"/><br>
+              </th>
+            </tr>
+          </table>
+        </div>
       </div>
-      <div id="wrapper2">
-        <table>
-          <tr>
-            <th>
-              Send on address paste: <input id="send-on-paste" type="checkbox" /><br>
-            </th>
-          </tr>
-          <tr>
-            <th>
-              Confirm transaction before sending: <input id="confirm-tx" type="checkbox" checked/><br>
-            </th>
-          </tr>
-          <tr>
-            <th>
-              Highlight input field when switching to this window <input id="highlight-on-focus" type="checkbox" /><br>
-            </th>
-          </tr>
-          <tr>
-            <th>
-              <input id="initial-delay" type="number" placeholder="INITIAL DELAY (MS)"/><br>
-            </th>
-          </tr>
-          <tr>
-            <th>
-              <input id="between-tx-delay" type="number" placeholder="DELAY (MS)"/><br>
-            </th>
-          </tr>
-        </table>
+      <hr>
+      <div class="wrapper-bottom">
+        <textarea id="logging" readonly></textarea><br>
+        <button id="clear">Clear Log</button><br>
       </div>
     </div>
     <script src="renderer.js"></script>
