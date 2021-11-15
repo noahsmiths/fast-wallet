@@ -105,3 +105,6 @@ dist
 
 #Mac Shit
 .DS_Store
+
+#Build Icon
+build/icon.png
