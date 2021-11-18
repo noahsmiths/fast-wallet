@@ -119,3 +119,8 @@ td, th {
     margin-right: 10px;
     white-space: nowrap;
 }
+
+select {
+    border: 2px solid rgb(190, 190, 190);
+    outline: none;
+}
