@@ -277,7 +277,7 @@ addressEl.addEventListener("paste", (e) => {
     if (sendOnPaste) {
         addressEl.value = e.clipboardData.getData("text");
         //console.log();
-        sendTransaction(passphraseEl.value.trim().split(" "), +lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), [...walletEl.options].filter(opt => opt.selected).map(opt => opt.value), confirmEl.checked);
+        sendTransaction(passphraseEl.value.trim().split(" "), +lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), [...walletEl.options].filter(opt => opt.selected).map(opt => opt.value), confirmEl.checked, +initialDelayEl.value, +betweenTransactionDelayEl.value);
         e.preventDefault();
     }
 });
