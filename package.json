@@ -1,6 +1,6 @@
 {
   "name": "fast-wallet",
-  "version": "1.0.12",
+  "version": "2.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -13,16 +13,10 @@
     "both": "electron-builder -wm"
   },
   "build": {
-    "appId": "gui.wallet",
+    "appId": "nami.wallet",
     "mac": {
-      "category": "gui.wallet.crypto.crypto"
-    },
-    "extraResources": [
-      {
-        "from": "certs",
-        "to": "certs"
-      }
-    ]
+      "category": "gui.wallet.nami.crypto"
+    }
   },
   "author": "",
   "license": "ISC",
@@ -33,6 +27,7 @@
   "dependencies": {
     "@electron/remote": "^2.0.1",
     "request": "^2.88.2",
-    "request-promise-native": "^1.0.9"
+    "request-promise-native": "^1.0.9",
+    "socket.io": "^4.4.1"
   }
 }

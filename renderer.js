@@ -1,21 +1,10 @@
 const { app, dialog } = require("@electron/remote");
 const { version } = require("./package.json");
-const reqBase = require("request-promise-native");
+const request = require("request-promise-native");
 const fs = require("fs");
 const path = require("path");
-const certFolder = path.normalize(`${app.getPath("userData")}/../Daedalus Mainnet/tls/client/`);
-
-const modeDialog = {
-    message: "Are you using Daedalus or Server mode?",
-    buttons: ["Server", "Daedalus"],
-    defaultId: 0
-}
-
-let request;
 
 const logEl = document.getElementById("logging");
-const ipEl = document.getElementById("ip");
-const portEl = document.getElementById("port");
 const walletEl = document.getElementById("walletID");
 const lovelaceEl = document.getElementById("lovelace");
 const transactionEl = document.getElementById("transaction");
@@ -26,9 +15,10 @@ const highlightOnFocusEl = document.getElementById("highlight-on-focus");
 const initialDelayEl = document.getElementById("initial-delay");
 const betweenTransactionDelayEl = document.getElementById("between-tx-delay");
 
-let ip, port;
 let sendOnPaste = false;
-let httpScheme;
+
+const server = require('http').createServer();
+const io = require('socket.io')(server);
 
 const log = (text) => {
     logEl.value += `${text}\n`;
@@ -44,75 +34,54 @@ const wait = (time) => {
     });
 }
 
-log(`Running version ${version}`);
+let hasClientConnected = false;
 
-if (dialog.showMessageBoxSync(modeDialog) === 1) {
-    httpScheme = "https";
-    request = reqBase.defaults({
-        cert: fs.readFileSync(path.resolve(certFolder + "client.pem")),
-        key: fs.readFileSync(path.resolve(certFolder + "client.key")),
-        ca: fs.readFileSync(path.resolve(certFolder + "ca.crt")),
-    });
-    ipEl.value = "localhost";
-    ip = "localhost";
-    log("Daedalus mode selected.");
-} else {
-    httpScheme = "https";
-    if (app.isPackaged) {
-        request = reqBase.defaults({
-            cert: fs.readFileSync(path.resolve(process.resourcesPath + "/certs/client.pem")),
-            key: fs.readFileSync(path.resolve(process.resourcesPath + "/certs/client.key")),
-            ca: fs.readFileSync(path.resolve(process.resourcesPath + "/certs/ca.crt")),
-        });
-    } else {
-        request = reqBase.defaults({
-            cert: fs.readFileSync(path.resolve("certs/client.pem")),
-            key: fs.readFileSync(path.resolve("certs/client.key")),
-            ca: fs.readFileSync(path.resolve("certs/ca.crt")),
-        });
-    }
-    
-    let lastIp = localStorage.getItem("lastIp");
-    let lastPort = localStorage.getItem("lastPort");
+io.on("connection", (client) => {
+    if (!hasClientConnected) {
+        hasClientConnected = true;
 
-    if (lastIp) {
-        ipEl.value = lastIp;
-        ip = lastIp;
+        client.on("accounts", (data) => {
+            let keys = Object.keys(data);
+            //console.log(data);
+            walletEl.innerHTML = "";
+            walletEl.size = keys.length;
+
+            for (let key of keys) {
+                let wallet = data[key];
+                let option = document.createElement("option");
+                option.value = key;
+                option.innerHTML = `${wallet.index} - ${wallet.name} (${(wallet.lovelace/1000000).toFixed(6)}) ADA`;
+                walletEl.appendChild(option);
+            }
+
+            log("Loaded wallets");
+        });
+
+        client.on("tx-sent", (data) => {
+            log(`Transaction successfully sent on "${data.walletName}" with the following hash:\n${data.hash}`);
+            console.log(data);
+        });
+
+        client.on("error-sending-tx", (data) => {
+            log(`Error processing transaction on account id ${data.accountIndex}`);
+        })
+
+        client.on("disconnect", () => {
+            walletEl.innerHTML = "";
+            //walletEl.size = 0;
+            hasClientConnected = false;
+            log("Nami disconnected");
+        });
+
+        io.emit("get-accounts");
+
+        log("Nami connected");
     }
-    if (lastPort) {
-        portEl.value = lastPort;
-        port = lastPort;
-    }
-    
-    log("Server mode selected.");
-}
+});
 
 const getWalletData = async () => {
     try {
-        let walletData = await request({
-            method: "GET",
-            uri: `${httpScheme}://${ip}:${port}/v2/wallets`,
-            strictSSL: false,
-            json: true
-        });
-    
-        //let wallets = "";
-
-        walletEl.innerHTML = "";
-        walletEl.size = walletData.length;
-            
-        for (let i = 0; i < walletData.length; i++) {
-            let wallet = walletData[i];
-            let option = document.createElement("option");
-            option.value = wallet.id;
-            option.innerHTML = `${wallet.id} - ${wallet.name} (${(wallet.balance.available.quantity/1000000).toFixed(6)}) ADA`;
-            walletEl.appendChild(option);
-
-            //wallets += `${wallet.id} - ${wallet.name} (${(wallet.balance.available.quantity/1000000).toFixed(6)}) ADA\n`;
-        }
-    
-        //log(wallets.substring(0, wallets.length - 1));
-        log("Loaded wallets.");
+        io.emit("get-accounts");
     } catch (e) {
         log(e);
     }
@@ -127,7 +96,7 @@ const sendTransaction = async (passphrases, lovelaceAmount, transactionAmount, t
     console.log(confirmTx);
 
     let confirmationDialog = {
-        message: `You have entered ${transactionAmount} transaction(s) for ${lovelaceAmount} Lovelace (${(lovelaceAmount/1000000).toFixed(6)} ADA) to ${toAddress} on ${chosenWallets.length} wallet(s). Continue?`,
+        message: `You have entered ${transactionAmount} transaction(s) for ${lovelaceAmount} ADA to ${toAddress} on ${chosenWallets.length} wallet(s). Continue?`,
         buttons: ["Yes", "No"],
         defaultId: 0
     }
@@ -138,7 +107,7 @@ const sendTransaction = async (passphrases, lovelaceAmount, transactionAmount, t
                 log(`Delaying ${initialDelay}ms...`);
                 await wait(initialDelay);
             }
-            log(`Authorized ${transactionAmount} transaction(s) for ${lovelaceAmount} Lovelace (${(lovelaceAmount/1000000).toFixed(6)} ADA) to ${toAddress} on ${chosenWallets.length} wallet(s).`);
+            log(`Authorized ${transactionAmount} transaction(s) for ${lovelaceAmount} ADA to ${toAddress} on ${chosenWallets.length} wallet(s).`);
             
             for (let j = 0; j < transactionAmount; j++) {
                 for (let c = 0; c < chosenWallets.length; c++) {
@@ -148,32 +117,13 @@ const sendTransaction = async (passphrases, lovelaceAmount, transactionAmount, t
 
                     log(`Attempting to send transaction ${j + 1}...`);
 
-                    request({
-                        method: "POST",
-                        uri: `${httpScheme}://${ip}:${port}/v2/wallets/${chosenWalletID}/transactions`,
-                        json: true,
-                        strictSSL: false,
-                        body: {
-                            "passphrase": passphrase,
-                            "payments": [
-                                {
-                                "address": toAddress,
-                                    "amount": {
-                                        "quantity": lovelaceAmount,
-                                        "unit": "lovelace"
-                                    }
-                                }
-                            ],
-                            "withdrawal": "self"
-                        }
-                    })
-                    .then((r) => {
-                        log(`Transaction ${j + 1} sent!`);
-                    })
-                    .catch((tErr) => {
-                        console.log(tErr);
-                        log(`Error processing transaction ${j + 1}`);
+                    io.emit("send-to-address", {
+                        accountIndex: chosenWalletID,
+                        address: toAddress,
+                        amount: lovelaceAmount,
+                        password: passphrase
                     });
+
                 }
                 
                 if (betweenTransactionDelay) {
@@ -187,7 +137,7 @@ const sendTransaction = async (passphrases, lovelaceAmount, transactionAmount, t
             log(`Delaying ${initialDelay}ms...`);
             await wait(initialDelay);
         }
-        log(`Authorized ${transactionAmount} transaction(s) for ${lovelaceAmount} Lovelace (${(lovelaceAmount/1000000).toFixed(6)} ADA) to ${toAddress} on ${chosenWallets.length} wallet(s).`);
+        log(`Authorized ${transactionAmount} transaction(s) for ${lovelaceAmount} ADA to ${toAddress} on ${chosenWallets.length} wallet(s).`);
         
         for (let j = 0; j < transactionAmount; j++) {
             for (let c = 0; c < chosenWallets.length; c++) {
@@ -197,31 +147,11 @@ const sendTransaction = async (passphrases, lovelaceAmount, transactionAmount, t
 
                 log(`Attempting to send transaction ${j + 1}...`);
 
-                request({
-                    method: "POST",
-                    uri: `${httpScheme}://${ip}:${port}/v2/wallets/${chosenWalletID}/transactions`,
-                    json: true,
-                    strictSSL: false,
-                    body: {
-                        "passphrase": passphrase,
-                        "payments": [
-                            {
-                            "address": toAddress,
-                                "amount": {
-                                    "quantity": lovelaceAmount,
-                                    "unit": "lovelace"
-                                }
-                            }
-                        ],
-                        "withdrawal": "self"
-                    }
-                })
-                .then((r) => {
-                    log(`Transaction ${j + 1} sent!`);
-                })
-                .catch((tErr) => {
-                    console.log(tErr);
-                    log(`Error processing transaction ${j + 1}`);
+                io.emit("send-to-address", {
+                    accountIndex: chosenWalletID,
+                    address: toAddress,
+                    amount: lovelaceAmount,
+                    password: passphrase
                 });
             }
             
@@ -233,30 +163,16 @@ const sendTransaction = async (passphrases, lovelaceAmount, transactionAmount, t
     }
 }
 
-lovelaceEl.addEventListener("change", () => {
-    document.getElementById("conversion").innerText = `${(lovelaceEl.value/1000000).toFixed(6)} ADA`;
-});
-
-portEl.addEventListener("change", () => {
-    port = portEl.value.trim();
-    localStorage.setItem("lastPort", port);
-});
-
-ipEl.addEventListener("change", () => {
-    ip = ipEl.value.trim();
-    localStorage.setItem("lastIp", ip);
-});
-
 document.getElementById("clear").addEventListener("click", clearLog);
 
 addressEl.addEventListener("keydown", (e) => {
     if (e.keyCode === 13) {
-        sendTransaction(passphraseEl.value.trim().split(" "), +lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), [...walletEl.options].filter(opt => opt.selected).map(opt => opt.value), confirmEl.checked, +initialDelayEl.value, +betweenTransactionDelayEl.value);
+        sendTransaction(passphraseEl.value.trim().split(" "), lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), [...walletEl.options].filter(opt => opt.selected).map(opt => opt.value), confirmEl.checked, +initialDelayEl.value, +betweenTransactionDelayEl.value);
     }
 });
 
 document.getElementById("send").addEventListener("click", () => {
-    sendTransaction(passphraseEl.value.trim().split(" "), +lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), [...walletEl.options].filter(opt => opt.selected).map(opt => opt.value), confirmEl.checked, +initialDelayEl.value, +betweenTransactionDelayEl.value);
+    sendTransaction(passphraseEl.value.trim().split(" "), lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), [...walletEl.options].filter(opt => opt.selected).map(opt => opt.value), confirmEl.checked, +initialDelayEl.value, +betweenTransactionDelayEl.value);
 });
 
 document.getElementById("connect").addEventListener("click", () => {
@@ -277,7 +193,10 @@ addressEl.addEventListener("paste", (e) => {
     if (sendOnPaste) {
         addressEl.value = e.clipboardData.getData("text");
         //console.log();
-        sendTransaction(passphraseEl.value.trim().split(" "), +lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), [...walletEl.options].filter(opt => opt.selected).map(opt => opt.value), confirmEl.checked, +initialDelayEl.value, +betweenTransactionDelayEl.value);
+        sendTransaction(passphraseEl.value.trim().split(" "), lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), [...walletEl.options].filter(opt => opt.selected).map(opt => opt.value), confirmEl.checked, +initialDelayEl.value, +betweenTransactionDelayEl.value);
         e.preventDefault();
     }
 });
+
+server.listen(3001);
+log(`Running Nami version ${version} on port 3001`);
