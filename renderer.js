@@ -199,4 +199,4 @@ addressEl.addEventListener("paste", (e) => {
 });
 
 server.listen(3001);
-log(`Running Nami version ${version} on port 3001`);
+log(`Running fast-wallet-2.0 version ${version} on port 3001`);

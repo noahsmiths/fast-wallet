@@ -1,5 +1,5 @@
 {
-  "name": "fast-wallet",
+  "name": "fast-wallet-2.0",
   "version": "2.0.0",
   "description": "",
   "main": "index.js",
@@ -13,9 +13,9 @@
     "both": "electron-builder -wm"
   },
   "build": {
-    "appId": "nami.wallet",
+    "appId": "fast2.wallet",
     "mac": {
-      "category": "gui.wallet.nami.crypto"
+      "category": "gui.wallet.fast2.crypto"
     }
   },
   "author": "",
