@@ -66,6 +66,14 @@ io.on("connection", (client) => {
             log(`Error processing transaction on account id ${data.accountIndex}`);
         })
 
+        client.on("error-priming", () => {
+            log(`Error priming accounts. If this continues, just send transactions normally without priming.`);
+        });
+
+        client.on("primed-successfully", () => {
+            log(`Nami primed and ready.`);
+        })
+
         client.on("disconnect", () => {
             walletEl.innerHTML = "";
             //walletEl.size = 0;
@@ -78,6 +86,11 @@ io.on("connection", (client) => {
         log("Nami connected");
     }
 });
+
+const primeNami = async () => {
+    io.emit("prime", [...walletEl.options].filter(opt => opt.selected).map(opt => opt.value));
+    log("Priming...");
+}
 
 const getWalletData = async () => {
     try {
@@ -173,6 +186,10 @@ addressEl.addEventListener("keydown", (e) => {
 
 document.getElementById("send").addEventListener("click", () => {
     sendTransaction(passphraseEl.value.trim().split(" "), lovelaceEl.value.trim(), +transactionEl.value.trim(), addressEl.value.trim(), [...walletEl.options].filter(opt => opt.selected).map(opt => opt.value), confirmEl.checked, +initialDelayEl.value, +betweenTransactionDelayEl.value);
+});
+
+document.getElementById("prime").addEventListener("click", () => {
+    primeNami();
 });
 
 document.getElementById("connect").addEventListener("click", () => {
