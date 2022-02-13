@@ -112,7 +112,7 @@ const sendTransaction = async (passphrases, lovelaceAmount, transactionAmount, t
             for (let j = 0; j < transactionAmount; j++) {
                 for (let c = 0; c < chosenWallets.length; c++) {
                     let chosenWalletID = chosenWallets[c];
-                    let passphrase = passphrases[c];
+                    let passphrase = passphrases.length > 1 ? passphrases[c] : passphrases[0];
                     console.log(`${chosenWalletID} with passphrase ${passphrase}`);
 
                     log(`Attempting to send transaction ${j + 1}...`);
@@ -142,7 +142,7 @@ const sendTransaction = async (passphrases, lovelaceAmount, transactionAmount, t
         for (let j = 0; j < transactionAmount; j++) {
             for (let c = 0; c < chosenWallets.length; c++) {
                 let chosenWalletID = chosenWallets[c];
-                let passphrase = passphrases[c];
+                let passphrase = passphrases.length > 1 ? passphrases[c] : passphrases[0];
                 console.log(`${chosenWalletID} with passphrase ${passphrase}`);
 
                 log(`Attempting to send transaction ${j + 1}...`);
