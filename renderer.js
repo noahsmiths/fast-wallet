@@ -78,7 +78,7 @@ io.on("connection", (client) => {
             walletEl.innerHTML = "";
             //walletEl.size = 0;
             hasClientConnected = false;
-            log("Nami disconnected");
+            log("Nami disconnected. Reprime required upon reconnect.");
         });
 
         io.emit("get-accounts");
