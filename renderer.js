@@ -44,7 +44,7 @@ io.on("connection", (client) => {
             let keys = Object.keys(data);
             //console.log(data);
             walletEl.innerHTML = "";
-            walletEl.size = keys.length;
+            walletEl.size = Math.min(keys.length, 10); //Max height of 10 wallets
 
             for (let key of keys) {
                 let wallet = data[key];
@@ -72,11 +72,11 @@ io.on("connection", (client) => {
 
         client.on("primed-successfully", () => {
             log(`Nami primed and ready.`);
-        })
+        });
 
         client.on("disconnect", () => {
             walletEl.innerHTML = "";
-            //walletEl.size = 0;
+            walletEl.size = 1;
             hasClientConnected = false;
             log("Nami disconnected. Reprime required upon reconnect.");
         });
