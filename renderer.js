@@ -66,6 +66,10 @@ io.on("connection", (client) => {
             log(`Error processing transaction on account id ${data.accountIndex}`);
         })
 
+        client.on("error-sending-max", (data) => {
+            log(`Error sending max ADA on account id ${data.accountIndex}`);
+        })
+
         client.on("error-priming", () => {
             log(`Error priming accounts. If this continues, just send transactions normally without priming.`);
         });
@@ -90,6 +94,45 @@ io.on("connection", (client) => {
 const primeNami = async () => {
     io.emit("prime", [...walletEl.options].filter(opt => opt.selected).map(opt => opt.value));
     log("Priming...");
+}
+
+const sendMaxTransaction = async (passphrases, transactionAmount, toAddress, chosenWallets, initialDelay = false, betweenTransactionDelay = false) => {
+    let confirmationDialog = {
+        message: `You want to send max ADA (ALL OF IT) to ${toAddress} on ${chosenWallets.length} wallet(s). Continue?`,
+        buttons: ["Yes", "No"],
+        defaultId: 0
+    }
+    
+    if (dialog.showMessageBoxSync(confirmationDialog) === 0) {
+        if (initialDelay) {
+            log(`Delaying ${initialDelay}ms...`);
+            await wait(initialDelay);
+        }
+        log(`Authorized transaction for max ADA to ${toAddress} on ${chosenWallets.length} wallet(s).`);
+        
+        for (let j = 0; j < transactionAmount; j++) {
+            for (let c = 0; c < chosenWallets.length; c++) {
+                let chosenWalletID = chosenWallets[c];
+                let passphrase = passphrases.length > 1 ? passphrases[c] : passphrases[0];
+                console.log(`${chosenWalletID} with passphrase ${passphrase}`);
+
+                log(`Attempting to send transaction ${j + 1}...`);
+
+                io.emit("send-max", {
+                    accountIndex: chosenWalletID,
+                    address: toAddress,
+                    amount: "1",
+                    password: passphrase
+                });
+
+            }
+            
+            if (betweenTransactionDelay) {
+                log(`Delaying ${betweenTransactionDelay}ms...`);
+                await wait(betweenTransactionDelay);
+            }
+        }
+    }
 }
 
 const getWalletData = async () => {
@@ -190,6 +233,10 @@ document.getElementById("send").addEventListener("click", () => {
 
 document.getElementById("prime").addEventListener("click", () => {
     primeNami();
+});
+
+document.getElementById("send-max").addEventListener("click", () => {
+    sendMaxTransaction(passphraseEl.value.trim().split(" "), 1, addressEl.value.trim(), [...walletEl.options].filter(opt => opt.selected).map(opt => opt.value), +initialDelayEl.value, +betweenTransactionDelayEl.value);
 });
 
 document.getElementById("connect").addEventListener("click", () => {

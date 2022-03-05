@@ -1,6 +1,6 @@
 {
   "name": "fast-wallet-2.0",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,8 @@
     "dist": "electron-builder",
     "mac": "electron-builder -m",
     "win": "electron-builder -w",
-    "both": "electron-builder -wm"
+    "both": "electron-builder -wm",
+    "lin": "electron-builder -l"
   },
   "build": {
     "appId": "fast2.wallet",
